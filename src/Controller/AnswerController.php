@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\AnswerRepository;
 use App\Entity\Answer;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +18,7 @@ class AnswerController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $direction = $data['direction'] ?? 'up';
-        
+
         // use real logic here to save this to the database
         if ($direction === 'up') {
             $logger->info('Voting up!');
@@ -27,6 +28,17 @@ class AnswerController extends AbstractController
             $answer->setVotes($answer->getVotes() - 1);
         }
 
-        return $this->json(['votes' => $currentVoteCount]);
+        return $this->json(['votes' => $answer->getVotes()]);
+    }
+
+    /**
+     * @Route("/answers/popular", name="app_popular_answers")
+     */
+    public function popularAnswers(AnswerRepository $answerRepository)
+    {
+        $answers = $answerRepository->findMostPopular();
+        return $this->render('answer/popularAnswers.html.twig', [
+            'answers' => $answers
+        ]);
     }
 }
